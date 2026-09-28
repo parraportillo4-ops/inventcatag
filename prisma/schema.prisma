@@ -24,28 +24,127 @@ model Category {
   products    Product[]
 }
 
+model Brand {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  slug   String  @unique
+  active Boolean @default(true)
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Supplier {
+  id      String  @id @default(cuid())
+  name    String
+  phone   String?
+  email   String?
+  address String?
+  active  Boolean @default(true)
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
+
 model Product {
-  id               String         @id @default(cuid())
-  name             String
-  slug             String         @unique
-  brand            String
-  description      String
-  characteristics  String
-  price            Decimal
-  stock            Int            @default(0)
-  active           Boolean        @default(true)
-  deletedAt        DateTime?
-  categoryId       String
-  category         Category       @relation(fields: [categoryId], references: [id])
-  images           ProductImage[]
-  reviews          Review[]
-  orderItems       OrderItem[]
-  promotionTargets Promotion[]    @relation("PromotionProduct")
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  // Temporalmente se conserva para migrar los datos existentes
+  brand    String
+  brandId  String?
+  brandRef Brand?  @relation(fields: [brandId], references: [id])
+
+  description     String
+  characteristics String
+
+  price     Decimal
+  costPrice Decimal @default(0)
+
+  stock    Int @default(0)
+  minStock Int @default(0)
+
+  active    Boolean   @default(true)
+  deletedAt DateTime?
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  images     ProductImage[]
+  reviews    Review[]
+  orderItems OrderItem[]
+
+  promotionTargets Promotion[] @relation("PromotionProduct")
+
+  inventoryMoves InventoryMovement[]
+
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([categoryId])
   @@index([slug])
+  @@index([brandId])
+  @@index([supplierId])
+}
+
+model TaxSetting {
+  id      String  @id @default("singleton")
+  enabled Boolean @default(false)
+  rate    Decimal @default(19)
+
+  updatedAt DateTime @updatedAt
+}
+
+model Invoice {
+  id            String @id @default(cuid())
+  invoiceNumber String @unique
+
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  subtotal   Decimal
+  taxEnabled Boolean
+  taxRate    Decimal
+  taxAmount  Decimal
+  total      Decimal
+
+  paymentMethod String
+
+  issuedAt DateTime @default(now())
+
+  @@index([issuedAt])
+}
+
+model InventoryMovement {
+  id String @id @default(cuid())
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  type     String
+  quantity Int
+
+  previousStock Int
+  newStock      Int
+
+  reason      String?
+  referenceId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@index([createdAt])
+  @@index([type])
 }
 
 model ProductImage {
@@ -60,7 +159,7 @@ model ProductImage {
 }
 
 model Promotion {
-  id              String    @id @default(cuid())
+  id              String   @id @default(cuid())
   title           String
   subtitle        String?
   imageUrl        String?
@@ -68,49 +167,84 @@ model Promotion {
   discountPercent Int?
   startsAt        DateTime
   endsAt          DateTime
-  active          Boolean   @default(true)
+  active          Boolean  @default(true)
   productId       String?
-  product         Product?  @relation("PromotionProduct", fields: [productId], references: [id])
-  createdAt       DateTime  @default(now())
+  product         Product? @relation("PromotionProduct", fields: [productId], references: [id])
+  createdAt       DateTime @default(now())
 }
 
 model Review {
-  id         String   @id @default(cuid())
-  productId  String
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id String @id @default(cuid())
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  orderItemId String    @unique
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+
   authorName String
   email      String?
   rating     Int
   comment    String
-  approved   Boolean  @default(true)
-  createdAt  DateTime @default(now())
+  approved   Boolean @default(true)
+
+  createdAt DateTime @default(now())
 
   @@index([productId])
 }
 
+model SearchLog {
+  id String @id @default(cuid())
+
+  query        String
+  normalized   String
+  resultsCount Int    @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([normalized])
+  @@index([createdAt])
+}
+
 model Order {
-  id            String      @id @default(cuid())
-  orderNumber   String      @unique
-  customerName  String
-  email         String
-  phone         String
-  address       String
-  notes         String?
-  total         Decimal
-  status        String      @default("PENDIENTE")
+  id          String @id @default(cuid())
+  orderNumber String @unique
+
+  customerName String
+  email        String
+  phone        String
+  address      String
+  notes        String?
+
+  subtotal  Decimal
+  taxAmount Decimal @default(0)
+  total     Decimal
+
+  status        String @default("PENDIENTE")
   paymentMethod String
-  items         OrderItem[]
-  createdAt     DateTime    @default(now())
+
+  items   OrderItem[]
+  invoice Invoice?
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([status])
 }
 
 model OrderItem {
-  id            String  @id @default(cuid())
-  orderId       String
-  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId     String
-  product       Product @relation(fields: [productId], references: [id])
+  id String @id @default(cuid())
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
   quantity      Int
   priceSnapshot Decimal
+
+  review Review?
 
   @@index([orderId])
 }
@@ -124,15 +258,15 @@ model ContactMessage {
 }
 
 model SiteSettings {
-  id          String  @id @default("singleton")
-  whatsapp    String  @default("")
-  facebook    String  @default("")
-  instagram   String  @default("")
-  tiktok      String  @default("")
-  email       String  @default("")
-  address     String  @default("")
-  mapEmbedUrl String?
-  aboutHtml   String  @default("")
-  servicesHtml String @default("")
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default("singleton")
+  whatsapp     String   @default("")
+  facebook     String   @default("")
+  instagram    String   @default("")
+  tiktok       String   @default("")
+  email        String   @default("")
+  address      String   @default("")
+  mapEmbedUrl  String?
+  aboutHtml    String   @default("")
+  servicesHtml String   @default("")
+  updatedAt    DateTime @updatedAt
 }

@@ -3,6 +3,16 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+// Helper para generar slug a partir del nombre de la marca
+function slugify(text: string) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
+}
+
 async function main() {
   const passwordHash = await bcrypt.hash("admin123", 12);
 
@@ -16,6 +26,36 @@ async function main() {
     },
   });
 
+  // ---------------------------------------------------------------
+  // MARCAS (Brand) — deben crearse antes que los productos
+  // ---------------------------------------------------------------
+  const brandNames = [
+    "Samsung",
+    "Genérico premium",
+    "SoundMax",
+    "CablePro",
+    "ProtectGlass",
+    "CaseFlex",
+  ];
+
+  const brands = await Promise.all(
+    brandNames.map((name) =>
+      prisma.brand.upsert({
+        where: { name },
+        update: {},
+        create: {
+          name,
+          slug: slugify(name),
+        },
+      })
+    )
+  );
+
+  const brandByName = Object.fromEntries(brands.map((b) => [b.name, b]));
+
+  // ---------------------------------------------------------------
+  // CATEGORÍAS
+  // ---------------------------------------------------------------
   const cats = await Promise.all([
     prisma.category.upsert({
       where: { slug: "celulares" },
@@ -75,6 +115,12 @@ async function main() {
 
   const bySlug = Object.fromEntries(cats.map((c) => [c.slug, c]));
 
+  // ---------------------------------------------------------------
+  // PRODUCTOS
+  // Cada producto lleva:
+  //   brand     → campo viejo (String) temporal
+  //   brandId   → campo nuevo (relación a Brand)
+  // ---------------------------------------------------------------
   const products = [
     {
       slug: "samsung-galaxy-a15",
@@ -159,11 +205,14 @@ async function main() {
   ];
 
   for (const p of products) {
+    const brandId = brandByName[p.brand]?.id;
+
     const product = await prisma.product.upsert({
       where: { slug: p.slug },
       update: {
         name: p.name,
-        brand: p.brand,
+        brand: p.brand,          // campo viejo temporal
+        brandId,                 // campo nuevo (relación)
         description: p.description,
         characteristics: p.characteristics,
         price: p.price,
@@ -173,7 +222,8 @@ async function main() {
       create: {
         slug: p.slug,
         name: p.name,
-        brand: p.brand,
+        brand: p.brand,          // campo viejo temporal
+        brandId,                 // campo nuevo (relación)
         description: p.description,
         characteristics: p.characteristics,
         price: p.price,
@@ -197,8 +247,15 @@ async function main() {
     await prisma.review.deleteMany({ where: { productId: product.id } });
   }
 
-  const p1 = await prisma.product.findUnique({ where: { slug: "samsung-galaxy-a15" } });
+  // ---------------------------------------------------------------
+  // RESEÑA DE EJEMPLO — comentada temporalmente
+  // (ahora requiere orderItemId, se activará al implementar ventas)
+  // ---------------------------------------------------------------
+  const p1 = await prisma.product.findUnique({
+    where: { slug: "samsung-galaxy-a15" },
+  });
   if (p1) {
+    /*
     await prisma.review.create({
       data: {
         productId: p1.id,
@@ -208,8 +265,12 @@ async function main() {
         comment: "Buen equipo y entrega rápida en Cereté.",
       },
     });
+    */
   }
 
+  // ---------------------------------------------------------------
+  // PROMOCIÓN
+  // ---------------------------------------------------------------
   const now = new Date();
   const nextMonth = new Date(now);
   nextMonth.setMonth(nextMonth.getMonth() + 1);
@@ -233,6 +294,9 @@ async function main() {
     },
   });
 
+  // ---------------------------------------------------------------
+  // SITE SETTINGS
+  // ---------------------------------------------------------------
   await prisma.siteSettings.upsert({
     where: { id: "singleton" },
     update: {},
@@ -247,6 +311,19 @@ async function main() {
         "<p><strong>El Santuario del Celular</strong> es un comercio emergente dedicado a accesorios para celulares, sonido y productos básicos para PC.</p>",
       servicesHtml:
         "<ul><li>Venta de accesorios y equipos</li><li>Asesoría en compra</li><li>Contacto por WhatsApp</li></ul>",
+    },
+  });
+
+  // ---------------------------------------------------------------
+  // TAX SETTING (IVA) — registro único "singleton"
+  // ---------------------------------------------------------------
+  await prisma.taxSetting.upsert({
+    where: { id: "singleton" },
+    update: {},
+    create: {
+      id: "singleton",
+      enabled: false,
+      rate: 19,
     },
   });
 
