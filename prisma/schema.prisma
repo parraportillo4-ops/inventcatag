@@ -1,0 +1,138 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  products    Product[]
+}
+
+model Product {
+  id               String         @id @default(cuid())
+  name             String
+  slug             String         @unique
+  brand            String
+  description      String
+  characteristics  String
+  price            Decimal
+  stock            Int            @default(0)
+  active           Boolean        @default(true)
+  deletedAt        DateTime?
+  categoryId       String
+  category         Category       @relation(fields: [categoryId], references: [id])
+  images           ProductImage[]
+  reviews          Review[]
+  orderItems       OrderItem[]
+  promotionTargets Promotion[]    @relation("PromotionProduct")
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([categoryId])
+  @@index([slug])
+}
+
+model ProductImage {
+  id        String  @id @default(cuid())
+  url       String
+  alt       String?
+  sortOrder Int     @default(0)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model Promotion {
+  id              String    @id @default(cuid())
+  title           String
+  subtitle        String?
+  imageUrl        String?
+  linkUrl         String?
+  discountPercent Int?
+  startsAt        DateTime
+  endsAt          DateTime
+  active          Boolean   @default(true)
+  productId       String?
+  product         Product?  @relation("PromotionProduct", fields: [productId], references: [id])
+  createdAt       DateTime  @default(now())
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  authorName String
+  email      String?
+  rating     Int
+  comment    String
+  approved   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  @@index([productId])
+}
+
+model Order {
+  id            String      @id @default(cuid())
+  orderNumber   String      @unique
+  customerName  String
+  email         String
+  phone         String
+  address       String
+  notes         String?
+  total         Decimal
+  status        String      @default("PENDIENTE")
+  paymentMethod String
+  items         OrderItem[]
+  createdAt     DateTime    @default(now())
+}
+
+model OrderItem {
+  id            String  @id @default(cuid())
+  orderId       String
+  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product @relation(fields: [productId], references: [id])
+  quantity      Int
+  priceSnapshot Decimal
+
+  @@index([orderId])
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model SiteSettings {
+  id          String  @id @default("singleton")
+  whatsapp    String  @default("")
+  facebook    String  @default("")
+  instagram   String  @default("")
+  tiktok      String  @default("")
+  email       String  @default("")
+  address     String  @default("")
+  mapEmbedUrl String?
+  aboutHtml   String  @default("")
+  servicesHtml String @default("")
+  updatedAt   DateTime @updatedAt
+}
