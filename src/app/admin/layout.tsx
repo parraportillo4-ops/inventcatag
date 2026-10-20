@@ -8,6 +8,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin" className="font-semibold text-zinc-900">
             Panel · Santuario
           </Link>
+          
           <nav className="flex flex-wrap gap-3 text-sm">
             <Link href="/admin/productos" className="text-zinc-600 hover:text-orange-600">
               Productos
@@ -21,6 +22,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link href="/" className="text-zinc-400 hover:text-orange-600">
               Ver tienda
             </Link>
+            <Link
+  href="/admin/inventario"
+  className="text-zinc-600 hover:text-orange-600"
+>
+  Inventario
+</Link>
           </nav>
         </div>
       </div>

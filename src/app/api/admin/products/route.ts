@@ -12,8 +12,10 @@ const createSchema = z.object({
   brand: z.string().min(1),
   description: z.string().min(5),
   characteristics: z.string().min(3),
-  price: z.number().positive(),
-  stock: z.number().int().min(0),
+ price: z.number().positive(),
+costPrice: z.number().min(0).default(0),
+stock: z.number().int().min(0),
+minStock: z.number().int().min(0).default(0),
   categoryId: z.string(),
   imageUrls: z.array(z.string().url()).default([]),
 });
@@ -46,7 +48,9 @@ export async function POST(req: Request) {
         description: data.description,
         characteristics: data.characteristics,
         price: data.price,
-        stock: data.stock,
+costPrice: data.costPrice,
+stock: data.stock,
+minStock: data.minStock,
         categoryId: data.categoryId,
         images: {
           create: data.imageUrls.map((url, i) => ({

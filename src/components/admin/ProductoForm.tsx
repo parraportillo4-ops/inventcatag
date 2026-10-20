@@ -6,6 +6,9 @@ import { useState } from "react";
 type Cat = { id: string; name: string };
 
 type ProductEdit = {
+  costPrice: number;
+minStock: number;
+supplierId: string | null;
   id: string;
   name: string;
   slug: string;
@@ -51,8 +54,11 @@ export function ProductoForm({ categories, product }: Props) {
       description: String(fd.get("description")).trim(),
       characteristics: String(fd.get("characteristics")).trim(),
       price: Number(fd.get("price")),
-      stock: Number(fd.get("stock")),
+costPrice: Number(fd.get("costPrice")),
+stock: Number(fd.get("stock")),
+minStock: Number(fd.get("minStock")),
       categoryId: String(fd.get("categoryId")),
+      
       imageUrls,
       ...(isEdit && {
         active: fd.get("active") === "on",
@@ -75,6 +81,8 @@ export function ProductoForm({ categories, product }: Props) {
     } finally {
       setPending(false);
     }
+
+  
   }
 
   async function onDelete() {
@@ -150,6 +158,37 @@ export function ProductoForm({ categories, product }: Props) {
             className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
           />
         </div>
+
+        <div>
+  <label className="text-xs font-medium text-zinc-500">
+    Precio de costo (COP)
+  </label>
+  <input
+    name="costPrice"
+    type="number"
+    min={0}
+    step={1}
+    required
+    defaultValue={product?.costPrice ?? 0}
+    className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+  />
+</div>
+
+<div>
+  <label className="text-xs font-medium text-zinc-500">
+    Stock mínimo
+  </label>
+  <input
+    name="minStock"
+    type="number"
+    min={0}
+    step={1}
+    required
+    defaultValue={product?.minStock ?? 0}
+    className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+  />
+</div>
+      
         <div>
           <label className="text-xs font-medium text-zinc-500">Stock</label>
           <input
