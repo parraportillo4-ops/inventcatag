@@ -149,7 +149,15 @@ export default async function ProductoPage({ params }: Props) {
               className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm"
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="font-medium text-zinc-900">{r.authorName}</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium text-zinc-900">
+                    {r.authorName}
+                  </span>
+
+                  <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+                    ✓ Compra verificada
+                  </span>
+                </div>
                 <span className="text-sm text-amber-600">
                   {"★".repeat(r.rating)}
                   {"☆".repeat(5 - r.rating)}
@@ -167,9 +175,15 @@ export default async function ProductoPage({ params }: Props) {
         )}
 
         <div className="mt-8 max-w-lg">
-          <h3 className="font-semibold text-zinc-900">Deja tu reseña</h3>
+          <h3 className="font-semibold text-zinc-900">
+            Opina sobre este producto
+          </h3>
+
           <p className="mt-1 text-xs text-zinc-500">
-            Publicación con nombre; el equipo puede moderar contenido inapropiado.
+            Esta opción está disponible únicamente para clientes
+            que hayan realizado y pagado su compra en efectivo.
+            Necesitarás tu número de pedido y el correo utilizado
+            al comprar.
           </p>
           <ReviewForm productId={product.id} />
         </div>
