@@ -228,6 +228,9 @@ model Order {
 
   createdAt DateTime @default(now())
 
+  taxEnabled Boolean @default(false)
+  taxRate    Decimal @default(19)
+
   @@index([createdAt])
   @@index([status])
 }

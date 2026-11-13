@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `order` ADD COLUMN `taxEnabled` BOOLEAN NOT NULL DEFAULT false,
+    ADD COLUMN `taxRate` DECIMAL(65, 30) NOT NULL DEFAULT 19;

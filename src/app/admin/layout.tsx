@@ -16,22 +16,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link href="/admin/promociones" className="text-zinc-600 hover:text-orange-600">
               Promociones
             </Link>
+            <Link href="/admin/ventas" className="text-zinc-600 hover:text-orange-600">
+              Ventas
+            </Link>
+            <Link href="/admin/ventas/nueva" className="text-zinc-600 hover:text-orange-600">
+              Nueva venta
+            </Link>
+            <Link href="/admin/inventario" className="text-zinc-600 hover:text-orange-600">
+              Inventario
+            </Link>
             <Link href="/admin/configuracion" className="text-zinc-600 hover:text-orange-600">
               Configuración
             </Link>
             <Link href="/" className="text-zinc-400 hover:text-orange-600">
               Ver tienda
             </Link>
-            <Link
-  href="/admin/inventario"
-  className="text-zinc-600 hover:text-orange-600"
->
-  Inventario
-</Link>
           </nav>
         </div>
       </div>
       {children}
     </div>
   );
+
 }
