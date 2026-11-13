@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 
 import { requireAdmin } from "@/lib/require-admin";
+import { prisma } from "@/lib/prisma";
 
-const prisma = new PrismaClient();
 
 type Context = {
   params: Promise<{ id: string }>;
@@ -17,8 +17,8 @@ export async function POST(
   try {
     const auth = await requireAdmin();
 
-    if (auth instanceof Response) {
-      return auth;
+    if (!auth) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     const { id } = await params;

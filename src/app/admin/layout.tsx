@@ -22,6 +22,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link href="/admin/ventas/nueva" className="text-zinc-600 hover:text-orange-600">
               Nueva venta
             </Link>
+            <Link href="/admin/facturas" className="text-zinc-600 hover:text-orange-600">
+              Facturas
+            </Link>
             <Link href="/admin/inventario" className="text-zinc-600 hover:text-orange-600">
               Inventario
             </Link>

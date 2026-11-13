@@ -6,6 +6,7 @@ export default function AdminHomePage() {
     { href: "/admin/productos", label: "Productos e inventario", desc: "CRUD, stock y fotos (URL)" },
     { href: "/admin/promociones", label: "Promociones", desc: "Ofertas con fechas en inicio" },
     { href: "/admin/configuracion", label: "Contacto y redes", desc: "WhatsApp, correo, textos informativos" },
+    { href: "/admin/facturas", label: "Facturas", desc: "Consultar e imprimir comprobantes de ventas en efectivo" },
     { href: "/admin/inventario", label: "Inventario", desc: "Proveedores, costos, existencias y movimientos"
 }
   ];
