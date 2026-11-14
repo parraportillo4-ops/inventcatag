@@ -1,3 +1,4 @@
+
 {
   "name": "santuario-web",
   "version": "0.1.0",
@@ -9,15 +10,18 @@
     "lint": "eslint",
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "docs:api": "tsx scripts/generate-openapi.ts"
   },
   "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^7.3.4",
     "@prisma/client": "^6.19.0",
     "bcryptjs": "^3.0.2",
     "jose": "^6.0.10",
     "next": "16.2.3",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "swagger-ui-react": "^5.35.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -26,6 +30,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/swagger-ui-react": "^5.18.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.3",
     "prisma": "^6.19.0",
